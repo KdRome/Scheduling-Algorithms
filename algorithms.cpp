@@ -1,8 +1,5 @@
 #include "process.h"
 #include <iostream>
-#include <climits>
-#include <vector>
-#include <queue>
 
 using namespace std;
 
@@ -30,59 +27,36 @@ int firstComeFirstServe(Process processArray[], int numJobs) {
     return currentTime;
 }
 
-//fix algorithm
 int roundRobin(Process processArray[], int numJobs, int quantum) {
-    queue<int> processQueue;
-    vector<int> exeOrder;
-    vector<bool> addedToQueue(numJobs, false);
     int currentTime = 0;
+    int completedJobs = 0;
     int totalSwitch = 0;
-    
-    for(int i = 0; i < numJobs; i++){
-        processArray[i].setStartTime(0);
-    }
+    bool addSwitchTime = false;
 
-    while (exeOrder.size() < numJobs) {
-        for (int i = 0; i < numJobs; i++) {
-            if (processArray[i].getArrivalTime() <= currentTime && !addedToQueue[i]) {
-                processQueue.push(i);
-                addedToQueue[i] = true;
-            }
-        }
-
-        if (!processQueue.empty()) {
-            int idx = processQueue.front();
-            processQueue.pop();
-
-            int timeSlice = min(quantum , processArray[idx].getRemainingBurstTime());
-
-            if (processArray[idx].getStartTime() == 0) {
-                processArray[idx].setWaitingTime(currentTime - processArray[idx].getArrivalTime());
-                processArray[idx].setStartTime(currentTime);
-                currentTime += SWITCH_TIME;
-                totalSwitch += SWITCH_TIME;
-            }
-
-            currentTime += timeSlice;
-            processArray[idx].setRemainingBurstTime(processArray[idx].getRemainingBurstTime() - timeSlice);
-            currentTime += SWITCH_TIME;
-            totalSwitch += SWITCH_TIME;
-
-            if (processArray[idx].getRemainingBurstTime() == 0) {
-                processArray[idx].setFinishTime(currentTime);
-                processArray[idx].setTurnAroundTime(currentTime - processArray[idx].getArrivalTime());
-                exeOrder.push_back(processArray[idx].getProcessId());
-            } else {
-                processQueue.push(idx);
-            }
-        } else {
-            int nextArrivalTime = INT_MAX;
-            for (int i = 0; i < numJobs; i++) {
-                if (!addedToQueue[i] && processArray[i].getArrivalTime() < nextArrivalTime) {
-                    nextArrivalTime = processArray[i].getArrivalTime();
+    while(completedJobs < numJobs) {
+        for(int i = 0; i < numJobs; i++) {
+            
+            if(processArray[i].getArrivalTime() <= currentTime && processArray[i].getRemainingBurstTime() > 0) {
+                if(addSwitchTime) {
+                    currentTime += SWITCH_TIME;
+                    totalSwitch += SWITCH_TIME;
                 }
+
+                if(processArray[i].getRemainingBurstTime() == processArray[i].getBurstTime()) {
+                    processArray[i].setStartTime(currentTime);
+                    processArray[i].setWaitingTime(currentTime - processArray[i].getArrivalTime());
+                }
+
+                int timeSpent = min(quantum, processArray[i].getRemainingBurstTime());
+                currentTime += timeSpent;
+                processArray[i].setRemainingBurstTime(processArray[i].getRemainingBurstTime() - timeSpent);
+                if(processArray[i].getRemainingBurstTime() == 0) {
+                    processArray[i].setFinishTime(currentTime);
+                    processArray[i].setTurnAroundTime(processArray[i].getFinishTime() - processArray[i].getArrivalTime());
+                    completedJobs++;
+                }
+                addSwitchTime = true;
             }
-            currentTime = nextArrivalTime;
         }
     }
     
