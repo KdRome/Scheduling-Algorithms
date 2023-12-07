@@ -1,5 +1,6 @@
 #include "process.h"
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
@@ -8,6 +9,7 @@ const int SWITCH_TIME = 2;
 int firstComeFirstServe(Process processArray[], int numJobs) {
     int currentTime = 0;
     int totalSwitch = 0;
+    vector<int> executed;
 
     for (int i = 0; i < numJobs; i++) {
         if (currentTime < processArray[i].getArrivalTime()) {
@@ -21,6 +23,7 @@ int firstComeFirstServe(Process processArray[], int numJobs) {
         processArray[i].setStartTime(currentTime);
         currentTime += processArray[i].getBurstTime();
         processArray[i].setFinishTime(currentTime);
+        executed.push_back(processArray[i].getProcessId());
         processArray[i].setTurnAroundTime(currentTime - processArray[i].getArrivalTime());
     }
     processArray[numJobs - 1].setTotalSwitchTime(totalSwitch);
@@ -32,6 +35,7 @@ int roundRobin(Process processArray[], int numJobs, int quantum) {
     int completedJobs = 0;
     int totalSwitch = 0;
     bool addSwitchTime = false;
+    vector<int> executed;
 
     while(completedJobs < numJobs) {
         for(int i = 0; i < numJobs; i++) {
@@ -52,6 +56,7 @@ int roundRobin(Process processArray[], int numJobs, int quantum) {
                 processArray[i].setRemainingBurstTime(processArray[i].getRemainingBurstTime() - timeSpent);
                 if(processArray[i].getRemainingBurstTime() == 0) {
                     processArray[i].setFinishTime(currentTime);
+                    executed.push_back(processArray[i].getProcessId());
                     processArray[i].setTurnAroundTime(processArray[i].getFinishTime() - processArray[i].getArrivalTime());
                     completedJobs++;
                 }
