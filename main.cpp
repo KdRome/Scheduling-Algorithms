@@ -8,6 +8,7 @@
 #include <fstream>
 #include "process.h"
 #include "algorithms.h"
+#include <string>
 
 using namespace std;
 
@@ -78,7 +79,8 @@ int main() {
     Process processArray[MAX_JOBS];
     int processId, arrivalTime, burstTime, numJobs;
     
-    ifstream file("/Users/jawadrada/Desktop/CSC-332-Scheduling/SchedulingAlgorithmsInput.txt");
+    ifstream file("/home/Roman/repos/Scheduling-Algorithms/SchedulingAlgorithmsInput.txt");
+    //ifstream file("/Users/jawadrada/Desktop/CSC-332-Scheduling/SchedulingAlgorithmsInput.txt");
     if (!file.is_open()) {
         cout << "Error opening file" << endl;
         return -1;
