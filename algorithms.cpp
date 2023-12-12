@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <algorithm>
 
 using namespace std;
 
@@ -10,24 +11,33 @@ const int SWITCH_TIME = 2;
 int firstComeFirstServe(Process processArray[], int numJobs) {
     int currentTime = 0;
     int totalSwitch = 0;
-    vector<int> executed;
 
+    //sort the process array based on arrival time
+    std::sort(processArray, processArray + numJobs, [](Process &a, Process &b) {
+        return a.getArrivalTime() < b.getArrivalTime();
+    });
+
+    // Process each job in the order of their arrival
     for (int i = 0; i < numJobs; i++) {
-        if (currentTime < processArray[i].getArrivalTime()) {
-            currentTime = processArray[i].getArrivalTime();
+        Process &currentProcess = processArray[i];
+
+        if (currentTime < currentProcess.getArrivalTime()) {
+            currentTime = currentProcess.getArrivalTime();
         }
+        
         if (i > 0) {
             currentTime += SWITCH_TIME;
             totalSwitch += SWITCH_TIME;
         }
-        processArray[i].setWaitingTime(currentTime - processArray[i].getArrivalTime());
-        processArray[i].setStartTime(currentTime);
-        currentTime += processArray[i].getBurstTime();
-        processArray[i].setFinishTime(currentTime);
-        executed.push_back(processArray[i].getProcessId());
-        processArray[i].setTurnAroundTime(currentTime - processArray[i].getArrivalTime());
+        currentProcess.setWaitingTime(currentTime - currentProcess.getArrivalTime());
+        currentProcess.setStartTime(currentTime);
+        currentTime += currentProcess.getBurstTime();
+        currentProcess.setFinishTime(currentTime);
+        currentProcess.setTurnAroundTime(currentTime - currentProcess.getArrivalTime());
     }
-    processArray[numJobs - 1].setTotalSwitchTime(totalSwitch);
+    for (int i = 0; i < numJobs; i++) {
+        processArray[i].setTotalSwitchTime(totalSwitch);
+    }
     return currentTime;
 }
 
