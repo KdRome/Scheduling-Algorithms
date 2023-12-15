@@ -71,8 +71,9 @@ int firstComeFirstServe(Process processArray[], int numJobs) {
 int roundRobin(Process processArray[], int numJobs, int quantum) {
     int currentTime = 0;
     int totalSwitch = 0;
-    std::queue<int> readyQueue;  // Queue to store indices of processes
-
+    queue<int> readyQueue;
+    vector<int> exectuted;
+    
     // Put all the process indices into the ready queue
     for (int i = 0; i < numJobs; i++) {
         readyQueue.push(i);
@@ -91,7 +92,7 @@ int roundRobin(Process processArray[], int numJobs, int quantum) {
         }
 
         // Calculate the time the process will execute in this round
-        int timeToExecute = std::min(currentProcess.getRemainingBurstTime(), quantum);
+        int timeToExecute = min(currentProcess.getRemainingBurstTime(), quantum);
         currentProcess.setRemainingBurstTime(currentProcess.getRemainingBurstTime() - timeToExecute);
         currentTime += timeToExecute;
 
@@ -100,6 +101,7 @@ int roundRobin(Process processArray[], int numJobs, int quantum) {
             currentProcess.setFinishTime(currentTime);
             currentProcess.setTurnAroundTime(currentTime - currentProcess.getArrivalTime());
             currentProcess.setWaitingTime(currentProcess.getTurnAroundTime() - currentProcess.getBurstTime());
+            executed.push_back(currentProcess.getProcessId());
         } else {
             // If the process is not finished, add it back to the queue
             readyQueue.push(processIndex);
@@ -111,11 +113,7 @@ int roundRobin(Process processArray[], int numJobs, int quantum) {
             totalSwitch += SWITCH_TIME;
         }
     }
-
-    // Update the total switch time for each process
-    for (int i = 0; i < numJobs; i++) {
-        processArray[i].setTotalSwitchTime(totalSwitch);
-    }
-
+    
+    processArray[numJobs - 1].setTotalSwitchTime(totalSwitch);
     return currentTime;
 }
