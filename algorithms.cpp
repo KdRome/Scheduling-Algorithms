@@ -43,6 +43,7 @@ int firstComeFirstServe(Process processArray[], int numJobs) {
 
 int roundRobin(Process processArray[], int numJobs, int quantum) {
     int currentTime = 0;
+    int totalSwitch = 0;
     std::queue<int> readyQueue;  // Queue to store indices of processes
 
     // Put all the process indices into the ready queue
@@ -80,12 +81,13 @@ int roundRobin(Process processArray[], int numJobs, int quantum) {
         // Update total switch time after each process execution
         if (!readyQueue.empty()) {
             currentTime += SWITCH_TIME;
+            totalSwitch += SWITCH_TIME;
         }
     }
 
     // Update the total switch time for each process
     for (int i = 0; i < numJobs; i++) {
-        processArray[i].setTotalSwitchTime(currentTime - processArray[i].getArrivalTime() - processArray[i].getBurstTime());
+        processArray[i].setTotalSwitchTime(totalSwitch);
     }
 
     return currentTime;
