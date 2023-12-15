@@ -11,33 +11,60 @@ const int SWITCH_TIME = 2;
 int firstComeFirstServe(Process processArray[], int numJobs) {
     int currentTime = 0;
     int totalSwitch = 0;
+    vector<int> executed;
+    vector<int> readyQueue;
 
-    //sort the process array based on arrival time
-    std::sort(processArray, processArray + numJobs, [](Process &a, Process &b) {
-        return a.getArrivalTime() < b.getArrivalTime();
-    });
-
-    // Process each job in the order of their arrival
-    for (int i = 0; i < numJobs; i++) {
-        Process &currentProcess = processArray[i];
-
-        if (currentTime < currentProcess.getArrivalTime()) {
-            currentTime = currentProcess.getArrivalTime();
+    while (executed.size() < numJobs) {
+        // Add processes to readyQueue based on arrivalTime
+        for (int i = 0; i < numJobs; i++) {
+            if (processArray[i].getArrivalTime() <= currentTime && !count(executed.begin(), executed.end(), processArray[i].getProcessId()) || !count(readyQueue.begin(), readyQueue.end(), processArray[i].getProcessId())) {
+                readyQueue.push_back(i);
+            }
         }
-        
-        if (i > 0) {
-            currentTime += SWITCH_TIME;
-            totalSwitch += SWITCH_TIME;
+
+        if (!readyQueue.empty()) {
+            Process& currentProcess = processArray[readyQueue.front()];
+            readyQueue.erase(readyQueue.begin());
+
+            currentProcess.setWaitingTime(currentTime - currentProcess.getArrivalTime());
+            currentProcess.setStartTime(currentTime);
+
+            //if its the first or last process add only one switch time unit
+            if (executed.size() == 0 || executed.size() == numJobs - 1) {
+                currentTime += (SWITCH_TIME / 2);
+                totalSwitch += (SWITCH_TIME / 2);
+            }
+            
+            else{
+                currentTime += SWITCH_TIME;
+                totalSwitch += SWITCH_TIME;
+            }
+            
+            // Execute the process
+            currentTime += currentProcess.getBurstTime();
+            currentProcess.setFinishTime(currentTime);
+            currentProcess.setTurnAroundTime(currentTime - currentProcess.getArrivalTime());
+            executed.push_back(currentProcess.getProcessId());
         }
-        currentProcess.setWaitingTime(currentTime - currentProcess.getArrivalTime());
-        currentProcess.setStartTime(currentTime);
-        currentTime += currentProcess.getBurstTime();
-        currentProcess.setFinishTime(currentTime);
-        currentProcess.setTurnAroundTime(currentTime - currentProcess.getArrivalTime());
+        else {
+            // Find the next process that will arrive and jump time
+            int nextArrivalTime = INT_MAX;
+            for (int i = 0; i < numJobs; i++) {
+                if (!count(executed.begin(), executed.end(), processArray[i].getProcessId()) && !count(readyQueue.begin(), readyQueue.end(), processArray[i].getProcessId())) {
+                    if (processArray[i].getArrivalTime() < nextArrivalTime) {
+                        nextArrivalTime = processArray[i].getArrivalTime();
+                    }
+                }
+            }
+
+            // Update currentTime if a valid next arrival time is found
+            if (nextArrivalTime != INT_MAX) {
+                currentTime = nextArrivalTime;
+            }
+        }
     }
-    for (int i = 0; i < numJobs; i++) {
-        processArray[i].setTotalSwitchTime(totalSwitch);
-    }
+
+    processArray[numJobs - 1].setTotalSwitchTime(totalSwitch);
     return currentTime;
 }
 
