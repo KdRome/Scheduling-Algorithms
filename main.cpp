@@ -58,7 +58,6 @@ void outputData(Process processArray[], int numJobs, int endTime, int quantum){
     avgTAT = totalTAT / numJobs;
     avgWaitingTime = totalWaitingTime / numJobs;
     
-    cout << "Time Quantum: " << quantum << " time units\n" << endl;
     cout << "Total Time: " << totalTime << " time units" << endl;
     cout << "Average TAT: " << avgTAT << " time units" << endl;
     cout << "Average Waiting Time: " << avgWaitingTime << " time units" << endl;

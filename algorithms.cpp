@@ -18,29 +18,27 @@ int firstComeFirstServe(Process processArray[], int numJobs) {
     while (executed.size() < numJobs) {
         // Add processes to readyQueue based on arrivalTime
         for (int i = 0; i < numJobs; i++) {
-            if (processArray[i].getArrivalTime() <= currentTime && !count(executed.begin(), executed.end(), processArray[i].getProcessId()) || !count(readyQueue.begin(), readyQueue.end(), processArray[i].getProcessId())) {
+            if (processArray[i].getArrivalTime() <= currentTime 
+                && !count(executed.begin(), executed.end(), processArray[i].getProcessId()) 
+                || !count(readyQueue.begin(), readyQueue.end(), processArray[i].getProcessId())) {
                 readyQueue.push_back(i);
             }
         }
-
         if (!readyQueue.empty()) {
             Process& currentProcess = processArray[readyQueue.front()];
             readyQueue.erase(readyQueue.begin());
 
             currentProcess.setWaitingTime(currentTime - currentProcess.getArrivalTime());
             currentProcess.setStartTime(currentTime);
-
             //if its the first or last process add only one switch time unit
             if (executed.size() == 0 || executed.size() == numJobs - 1) {
                 currentTime += (SWITCH_TIME / 2);
                 totalSwitch += (SWITCH_TIME / 2);
             }
-            
             else{
                 currentTime += SWITCH_TIME;
                 totalSwitch += SWITCH_TIME;
             }
-            
             // Execute the process
             currentTime += currentProcess.getBurstTime();
             currentProcess.setFinishTime(currentTime);
@@ -57,7 +55,6 @@ int firstComeFirstServe(Process processArray[], int numJobs) {
                     }
                 }
             }
-
             // Update currentTime if a valid next arrival time is found
             if (nextArrivalTime != INT_MAX) {
                 currentTime = nextArrivalTime;
