@@ -3,6 +3,7 @@
 #include <vector>
 #include <queue>
 #include <algorithm>
+#include <climits>
 
 using namespace std;
 
@@ -17,29 +18,27 @@ int firstComeFirstServe(Process processArray[], int numJobs) {
     while (executed.size() < numJobs) {
         // Add processes to readyQueue based on arrivalTime
         for (int i = 0; i < numJobs; i++) {
-            if (processArray[i].getArrivalTime() <= currentTime && !count(executed.begin(), executed.end(), processArray[i].getProcessId()) || !count(readyQueue.begin(), readyQueue.end(), processArray[i].getProcessId())) {
+            if (processArray[i].getArrivalTime() <= currentTime 
+                && !count(executed.begin(), executed.end(), processArray[i].getProcessId()) 
+                || !count(readyQueue.begin(), readyQueue.end(), processArray[i].getProcessId())) {
                 readyQueue.push_back(i);
             }
         }
-
         if (!readyQueue.empty()) {
             Process& currentProcess = processArray[readyQueue.front()];
             readyQueue.erase(readyQueue.begin());
 
             currentProcess.setWaitingTime(currentTime - currentProcess.getArrivalTime());
             currentProcess.setStartTime(currentTime);
-
             //if its the first or last process add only one switch time unit
             if (executed.size() == 0 || executed.size() == numJobs - 1) {
                 currentTime += (SWITCH_TIME / 2);
                 totalSwitch += (SWITCH_TIME / 2);
             }
-            
             else{
                 currentTime += SWITCH_TIME;
                 totalSwitch += SWITCH_TIME;
             }
-            
             // Execute the process
             currentTime += currentProcess.getBurstTime();
             currentProcess.setFinishTime(currentTime);
@@ -56,7 +55,6 @@ int firstComeFirstServe(Process processArray[], int numJobs) {
                     }
                 }
             }
-
             // Update currentTime if a valid next arrival time is found
             if (nextArrivalTime != INT_MAX) {
                 currentTime = nextArrivalTime;
@@ -72,48 +70,45 @@ int roundRobin(Process processArray[], int numJobs, int quantum) {
     int currentTime = 0;
     int totalSwitch = 0;
     queue<int> readyQueue;
-    vector<int> exectuted;
+    vector<int> executed;
     
-    // Put all the process indices into the ready queue
+    // Add processes to readyQueue
     for (int i = 0; i < numJobs; i++) {
         readyQueue.push(i);
-        processArray[i].setStartTime(-1); // Initialize start time as -1 (not started)
+        processArray[i].setStartTime(-1);
     }
-
-    // Process each job in the ready queue
+    // Execute processes in readyQueue
     while (!readyQueue.empty()) {
         int processIndex = readyQueue.front();
         readyQueue.pop();
-        Process &currentProcess = processArray[processIndex];  // Reference to the process in the array
-
-        // Update the start time for the process if it's not started yet
+        Process &currentProcess = processArray[processIndex];
+        // Set start time if it hasn't been set
         if (currentProcess.getStartTime() == -1) {
             currentProcess.setStartTime(currentTime);
         }
-
-        // Calculate the time the process will execute in this round
+        // Calculate time to execute
         int timeToExecute = min(currentProcess.getRemainingBurstTime(), quantum);
         currentProcess.setRemainingBurstTime(currentProcess.getRemainingBurstTime() - timeToExecute);
         currentTime += timeToExecute;
-
-        // Check if the process is finished
+        // Check if process has finished
         if (currentProcess.getRemainingBurstTime() <= 0) {
             currentProcess.setFinishTime(currentTime);
             currentProcess.setTurnAroundTime(currentTime - currentProcess.getArrivalTime());
             currentProcess.setWaitingTime(currentProcess.getTurnAroundTime() - currentProcess.getBurstTime());
             executed.push_back(currentProcess.getProcessId());
         } else {
-            // If the process is not finished, add it back to the queue
             readyQueue.push(processIndex);
         }
-
-        // Update total switch time after each process execution
-        if (!readyQueue.empty()) {
+        // Update switch time
+        if (readyQueue.empty()) {
+            currentTime += quantum;
+            totalSwitch += quantum;
+        } else {
             currentTime += SWITCH_TIME;
             totalSwitch += SWITCH_TIME;
         }
     }
-    
+    // Set total switch time
     processArray[numJobs - 1].setTotalSwitchTime(totalSwitch);
     return currentTime;
 }

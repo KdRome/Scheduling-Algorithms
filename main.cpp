@@ -14,7 +14,7 @@ using namespace std;
 
 const int MAX_JOBS = 100;
 
-void outputData(Process processArray[], int numJobs, int totalSwitchTime);
+void outputData(Process processArray[], int numJobs, int totalSwitchTime, int quantum);
 void switchAlgorithm(int num, Process processArray[], int numJobs, int quantum);
 
 void switchAlgorithm(int num, Process processArray[], int numJobs, int quantum) {
@@ -34,10 +34,10 @@ void switchAlgorithm(int num, Process processArray[], int numJobs, int quantum) 
         default:
             return;
     }
-    outputData(processArray, numJobs, endTime);
+    outputData(processArray, numJobs, endTime, quantum);
 }
 
-void outputData(Process processArray[], int numJobs, int endTime){
+void outputData(Process processArray[], int numJobs, int endTime, int quantum){
     
     double efficiency = 0.0;
     int avgTAT = 0;
@@ -75,7 +75,9 @@ void outputData(Process processArray[], int numJobs, int endTime){
 
 int main() {
     const int NUM_ALGORITHMS = 2;
+    //const int QUANTUM = 10;
     const int QUANTUM = 50;
+    //const int QUANTUM = 100;
     Process processArray[MAX_JOBS];
     int processId, arrivalTime, burstTime, numJobs;
     
